@@ -1,0 +1,27 @@
+{
+  "title": "P&ID — Cooling Water Circulation System (Unit 1)",
+  "doc_type": "engineering_drawing",
+  "drawing_no": "PID-CW-001 Rev 4",
+  "description": "Piping and Instrumentation Diagram for the Unit 1 cooling water circulation loop, including circulation pumps, plate heat exchanger and the cooling water surge vessel.",
+  "equipment": [
+    {"tag": "P-101A", "desc": "Cooling Water Circulation Pump A", "type": "horizontal centrifugal pump", "rated_flow_m3h": 450, "rated_head_m": 32, "motor_kw": 75, "seal": "single mechanical seal", "criticality": "A"},
+    {"tag": "P-101B", "desc": "Cooling Water Circulation Pump B (standby)", "type": "horizontal centrifugal pump", "rated_flow_m3h": 450, "rated_head_m": 32, "motor_kw": 75, "seal": "single mechanical seal", "criticality": "A"},
+    {"tag": "HX-12", "desc": "Cooling Water Plate Heat Exchanger", "type": "gasketed plate heat exchanger", "duty_kw": 2800, "criticality": "B"},
+    {"tag": "V-201", "desc": "Cooling Water Surge Vessel", "type": "vertical pressure vessel", "design_pressure_barg": 6, "design_code": "ASME VIII Div 1", "criticality": "B"},
+    {"tag": "CT-01", "desc": "Induced Draft Cooling Tower", "type": "counterflow cooling tower", "cells": 3, "criticality": "B"}
+  ],
+  "lines": [
+    {"id": "CW-6-101", "from": "V-201", "to": "P-101A", "service": "cooling water supply", "size_in": 6, "spec": "CS150"},
+    {"id": "CW-6-102", "from": "V-201", "to": "P-101B", "service": "cooling water supply", "size_in": 6, "spec": "CS150"},
+    {"id": "CW-8-110", "from": "P-101A", "to": "HX-12", "service": "cooling water to exchanger", "size_in": 8, "spec": "CS150"},
+    {"id": "CW-8-120", "from": "HX-12", "to": "CT-01", "service": "warm cooling water return", "size_in": 8, "spec": "CS150"}
+  ],
+  "instruments": [
+    {"tag": "FT-2301", "desc": "Cooling water supply flow transmitter on CW-8-110", "range_m3h": "0-600", "trip": "low flow < 180 m3/h trips P-101A"},
+    {"tag": "PT-2305", "desc": "P-101A discharge pressure transmitter", "range_barg": "0-10"},
+    {"tag": "VT-2310", "desc": "P-101A bearing vibration transmitter", "alarm_mm_s": 7.1, "trip_mm_s": 11.0},
+    {"tag": "LT-2201", "desc": "V-201 surge vessel level transmitter", "range_pct": "0-100", "low_low_trip_pct": 15},
+    {"tag": "TT-2330", "desc": "HX-12 cooling water outlet temperature transmitter"}
+  ],
+  "notes": "Pump P-101A trips on either low cooling-water flow (FT-2301 < 180 m3/h) or high bearing vibration (VT-2310 > 11 mm/s). A common nuisance trip is low surge-vessel level (LT-2201) when cooling tower make-up is interrupted. Interlock I-CW-07 starts standby pump P-101B automatically on P-101A trip."
+}

@@ -1,0 +1,9 @@
+work_order,date,equipment_tag,type,priority,description,root_cause,action_taken,downtime_hours,technician
+WO-10231,2025-11-02,P-101A,breakdown,P1,Pump P-101A tripped repeatedly on high bearing vibration VT-2310 above 11 mm/s,Worn drive-end bearing and minor shaft misalignment,Replaced DE and NDE bearings; laser aligned coupling to 0.05 mm,6.5,R. Mehta
+WO-10288,2025-12-14,P-101A,breakdown,P1,P-101A trip on low cooling water flow FT-2301 below 180 m3/h,Cooling tower make-up valve stuck closed dropping V-201 level,Freed make-up valve and restored surge vessel level; reset interlock I-CW-07,3.0,S. Iyer
+WO-10355,2026-01-21,P-101A,breakdown,P1,Mechanical seal leak on P-101A discharge,Single mechanical seal failure after 14 months service,Replaced mechanical seal cartridge; flushed seal plan 11,4.5,R. Mehta
+WO-10402,2026-02-09,P-101B,preventive,P3,Quarterly PM on standby pump P-101B,NA,Greased bearings; tested auto-start on P-101A trip; OK,1.5,A. Khan
+WO-10455,2026-03-03,HX-12,breakdown,P2,HX-12 high cooling water outlet temperature TT-2330,Plate fouling and partial gasket bypass,Opened exchanger; cleaned plates; replaced 6 gaskets,8.0,S. Iyer
+WO-10501,2026-03-28,P-101A,breakdown,P1,P-101A bearing vibration alarm recurring third time this fiscal year,Repeated bearing failures suggest baseplate softfoot,Shimmed baseplate to correct softfoot; vibration back to 2.8 mm/s,5.0,R. Mehta
+WO-10560,2026-04-18,V-201,inspection,P2,Statutory external visual inspection of surge vessel V-201,NA,Visual inspection complete; minor external coating breakdown noted,2.0,Inspector J. Rao
+WO-10612,2026-05-22,CT-01,preventive,P3,Cooling tower CT-01 fill and nozzle cleaning,NA,Cleaned nozzles; replaced 2 drift eliminators,4.0,A. Khan
