@@ -177,4 +177,4 @@ tests/
 * The structured P&ID loader is the seam for a computer-vision drawing-parsing
   pipeline: emit the same JSON shape and the rest works unchanged.
 * `_ACTION_RULES` in `copilot.py` is where agentic CMMS/QMS integrations hook in.
-# industrial-knowledge-copilot
+
