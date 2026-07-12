@@ -159,3 +159,10 @@ class Copilot:
             if pattern.search(haystack) and action not in actions:
                 actions.append(action)
         return actions[:3]
+
+    def equipment_brief(self, tag: str) -> dict:
+        graph_info = self.store.graph.summary(tag)
+        if graph_info["mention_count"] == 0:
+            return {**graph_info, "answer": None}
+        ans = self.answer(f"Summarize everything known about {tag}: history, procedures, and related equipment.")
+        return {**graph_info, "answer": ans.to_dict()}

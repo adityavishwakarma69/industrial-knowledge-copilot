@@ -17,6 +17,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 from ..config import settings
 from ..models import Chunk, Document, DocType
 from ..ai.embeddings import Embedder, get_embedder, tokenize
+from ..graph import EquipmentGraph
 
 
 @dataclass
@@ -31,11 +32,13 @@ class KnowledgeStore:
     def __init__(self, embedder: Optional[Embedder] = None, path: Optional[Path] = None):
         self.embedder = embedder or get_embedder()
         self.path = Path(path) if path else settings.index_path
+        self.graph = EquipmentGraph()
         self.documents: Dict[str, dict] = {}
         self.chunks: List[Chunk] = []
         self._df: Dict[str, int] = {}            # document (chunk) frequency
         self._chunk_tokens: List[set] = []       # cached token sets per chunk
         self._avg_len: float = 0.0
+        
 
     # ------------------------------------------------------------------ #
     # Mutation
@@ -84,6 +87,7 @@ class KnowledgeStore:
             for t in tokset:
                 self._df[t] = self._df.get(t, 0) + 1
         self._avg_len = (total_len / len(self.chunks)) if self.chunks else 0.0
+        self.graph.build(self.chunks)
 
     def _idf(self, term: str) -> float:
         n = len(self.chunks)

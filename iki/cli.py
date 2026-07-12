@@ -66,6 +66,12 @@ def cmd_diagnose(args) -> None:
     briefing = MaintenanceAgent(store).diagnose(args.equipment)
     print(json.dumps(briefing.to_dict(), indent=2) if args.json else _fmt_briefing(briefing))
 
+def cmd_equipment(args) -> None:
+    store = _store()
+    copilot = Copilot(store)
+    info = copilot.equipment_brief(args.tag)
+    print(json.dumps(info, indent=2))
+
 
 def cmd_compliance(args) -> None:
     store = _store()
@@ -116,6 +122,10 @@ def build_parser() -> argparse.ArgumentParser:
     pd.add_argument("equipment")
     pd.add_argument("--json", action="store_true")
     pd.set_defaults(func=cmd_diagnose)
+
+    pe = sub.add_parser("equipment", help="Show everything linked to an equipment tag")
+    pe.add_argument("tag")
+    pe.set_defaults(func=cmd_equipment)
 
     pc = sub.add_parser("compliance", help="Compliance gap check for a topic")
     pc.add_argument("topic")
