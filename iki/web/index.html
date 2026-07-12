@@ -220,12 +220,13 @@ function render(ans) {
   html += `</div>`;
   m.innerHTML = html;
   m.querySelectorAll('cite').forEach(el => el.onclick = () => {
-  m.querySelectorAll('.tag-link').forEach(el => el.onclick = () => lookupEquipment(el.dataset.tag));  
+    
     const t = document.getElementById('cite-' + el.dataset.n);
     if (t) { t.scrollIntoView({behavior:'smooth', block:'center'});
              t.style.outline = '2px solid var(--accent)';
              setTimeout(()=>t.style.outline='none', 1200); }
   });
+  m.querySelectorAll('.tag-link').forEach(el => el.onclick = () => lookupEquipment(el.dataset.tag));
   chat.appendChild(m); scroll();
 }
 
