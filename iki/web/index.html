@@ -68,6 +68,8 @@
     padding: 1px 6px; border-radius: 999px; text-transform: capitalize; }
   .cite .snippet { font-size: 12.5px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
   .cite .meta { font-size: 11px; color: var(--accent-2); margin-top: 6px; word-break: break-all; }
+  .tag-link { color: var(--accent-2); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+  .tag-link:hover { color: var(--accent); }
   .warn { margin-top: 10px; font-size: 12px; color: var(--med); background: rgba(251,191,36,.08);
     border-radius: 6px; padding: 7px 10px; }
 
@@ -203,13 +205,14 @@ function render(ans) {
   if (ans.citations && ans.citations.length) {
     html += `<div class="cites"><h4>Sources</h4>`;
     ans.citations.forEach((c, i) => {
-      const tags = (c.metadata && c.metadata.equipment_tags) ? c.metadata.equipment_tags.slice(0,6).join(', ') : '';
+      const tagList = (c.metadata && c.metadata.equipment_tags) ? c.metadata.equipment_tags.slice(0,6) : [];
+      const tags = tagList.map(t => `<span class="tag-link" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`).join(' ');
       html += `<div class="cite" id="cite-${i+1}">
         <div class="top"><span class="num">${i+1}</span>
           <span class="title">${escapeHtml(c.title)}</span>
           <span class="badge">${(TYPE_LABELS[c.doc_type]||c.doc_type)}</span></div>
         <div class="snippet">${escapeHtml(c.snippet)}</div>
-        <div class="meta">${escapeHtml(c.source_path)} · match ${Math.round(c.score*100)}%${tags ? ' · tags: '+escapeHtml(tags) : ''}</div>
+        <div class="meta">${escapeHtml(c.source_path)} · match ${Math.round(c.score*100)}%${tags ? ' · tags: '+tags : ''}</div>
       </div>`;
     });
     html += `</div>`;
@@ -217,12 +220,45 @@ function render(ans) {
   html += `</div>`;
   m.innerHTML = html;
   m.querySelectorAll('cite').forEach(el => el.onclick = () => {
+  m.querySelectorAll('.tag-link').forEach(el => el.onclick = () => lookupEquipment(el.dataset.tag));  
     const t = document.getElementById('cite-' + el.dataset.n);
     if (t) { t.scrollIntoView({behavior:'smooth', block:'center'});
              t.style.outline = '2px solid var(--accent)';
              setTimeout(()=>t.style.outline='none', 1200); }
   });
   chat.appendChild(m); scroll();
+}
+
+function renderEquipmentCard(info) {
+  const m = document.createElement('div'); m.className = 'msg bot';
+  let html = `<div class="bubble">`;
+  html += `<div style="font-weight:700;font-size:15px;margin-bottom:6px;">🔗 ${escapeHtml(info.tag)}</div>`;
+  html += `<div style="font-size:12.5px;color:var(--muted);margin-bottom:8px;">
+             Mentioned ${info.mention_count} times across: ${info.doc_types.map(t => TYPE_LABELS[t]||t).join(', ')}
+           </div>`;
+  if (info.related_tags && info.related_tags.length) {
+    html += `<div style="font-size:12.5px;margin-bottom:10px;"><b>Related equipment:</b> ` +
+      info.related_tags.map(t => `<span class="tag-link" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`).join(', ') +
+      `</div>`;
+  }
+  html += `</div>`;
+  m.innerHTML = html;
+  m.querySelectorAll('.tag-link').forEach(el => el.onclick = () => lookupEquipment(el.dataset.tag));
+  chat.appendChild(m); scroll();
+  if (info.answer) render(info.answer);
+}
+
+async function lookupEquipment(tag) {
+  const e = document.getElementById('empty'); if (e) e.remove();
+  addUser(`🔗 ${tag}`);
+  const typing = addTyping();
+  try {
+    const info = await api(`/api/equipment/${encodeURIComponent(tag)}`);
+    typing.remove();
+    renderEquipmentCard(info);
+  } catch (e) {
+    typing.remove();
+  }
 }
 
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c =>

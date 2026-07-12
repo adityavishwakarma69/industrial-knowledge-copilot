@@ -130,6 +130,11 @@ def create_app(store: Optional[KnowledgeStore] = None) -> FastAPI:
     @app.post("/api/agent/compliance")
     def compliance(req: ComplianceRequest) -> dict:
         return ComplianceAgent(store, copilot).check(req.topic).to_dict()
+    
+    # ---- Equipment graph -----------------------------------------------
+    @app.get("/api/equipment/{tag}")
+    def equipment(tag: str) -> dict:
+        return copilot.equipment_brief(tag)
 
     return app
 
