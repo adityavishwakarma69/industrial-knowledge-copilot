@@ -135,6 +135,10 @@ def create_app(store: Optional[KnowledgeStore] = None) -> FastAPI:
     @app.get("/api/equipment/{tag}")
     def equipment(tag: str) -> dict:
         return copilot.equipment_brief(tag)
+    
+    @app.get("/api/equipment_tags")
+    def equipment_tags() -> dict:
+        return {"tags": store.graph.all_tags()}
 
     return app
 

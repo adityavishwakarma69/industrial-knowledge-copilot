@@ -6,9 +6,9 @@
 <title>Industrial Knowledge Copilot</title>
 <style>
   :root {
-    --bg: #0f1720; --panel: #16212e; --panel-2: #1d2b3a; --line: #2a3a4d;
-    --text: #e8eef5; --muted: #93a4b8; --accent: #ff8a3d; --accent-2: #3da5ff;
-    --hi: #36d399; --med: #fbbf24; --lo: #f87171; --user: #234;
+    --bg: #191B1D; --panel: #212426; --panel-2: #2D3134; --line: #40464A;
+    --text: #F1F2F3; --muted: #A5ABB1; --accent: #5F7DEF; --accent-2: #21C09D;
+    --hi: #24C45E; --med: #FCB100; --lo: #F65E78; --user: #2D3134;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; }
@@ -31,9 +31,37 @@
   header .sub { font-size: 11px; color: var(--muted); }
   header .stat { margin-left: auto; font-size: 11px; color: var(--muted); text-align: right; }
 
+  .docrow { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+  .docrow .dtitle { font-weight: 600; font-size: 14px; flex: 1; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  .docrow .dbadge { font-size: 10.5px; color: var(--muted); border: 1px solid var(--line);
+    padding: 2px 8px; border-radius: 999px; text-transform: capitalize; flex: none; }
+  .docrow .dchunks { font-size: 12px; color: var(--accent-2); flex: none; }
+  .docrow .dpath { font-size: 11px; color: var(--muted); width: 100%; margin-top: 2px;
+    word-break: break-all; }
+
+  .etag { display: inline-block; margin: 3px 6px 3px 0; padding: 6px 13px; border-radius: 999px;
+    font-size: 13px; cursor: pointer; background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--accent-2); }
+  .etag:hover { border-color: var(--accent-2); }
+  .etag.center { background: var(--accent); color: #0d1116; border-color: var(--accent); font-weight: 700; }
+  .esection { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px; margin-top: 4px; }
+  .estat { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.6; }
+
   .filters { display: flex; gap: 6px; overflow-x: auto; padding: 10px 12px;
     border-bottom: 1px solid var(--line); background: var(--panel); scrollbar-width: none; }
   .filters::-webkit-scrollbar { display: none; }
+
+  .tabbar { display: flex; gap: 4px; padding: 10px 12px 0; background: var(--panel);
+    border-bottom: 1px solid var(--line); }
+  .tab { font-size: 13px; font-weight: 600; color: var(--muted); background: transparent;
+    border: none; padding: 10px 16px; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+  .tabpanel { display: none; flex: 1; min-height: 0; flex-direction: column; }
+  .tabpanel.active { display: flex; }  
+
   .chip { white-space: nowrap; font-size: 12px; padding: 6px 11px; border-radius: 999px;
     border: 1px solid var(--line); color: var(--muted); background: transparent; cursor: pointer; }
   .chip.active { color: #08121c; background: var(--accent-2); border-color: var(--accent-2); font-weight: 600; }
@@ -103,22 +131,137 @@
 
   <div class="filters" id="filters"></div>
 
-  <div id="chat">
-    <div class="empty" id="empty">
-      Ask about equipment, maintenance history, procedures, inspections or compliance.
-      Every answer is grounded in your documents with citations and a confidence score.
-      <div class="examples" id="examples"></div>
+  <div class="tabbar">
+    <button class="tab active" data-tab="ask">Ask</button>
+    <button class="tab" data-tab="explorer">Equipment Explorer</button>
+    <button class="tab" data-tab="documents">Documents</button>
+  </div>
+
+  <div class="tabpanel active" id="tab-ask">
+    <div class="filters" id="filters"></div>
+    <div id="chat">
+      <div class="empty" id="empty">
+        Ask about equipment, maintenance history, procedures, inspections or compliance.
+        Every answer is grounded in your documents with citations and a confidence score.
+        <div class="examples" id="examples"></div>
+      </div>
+    </div>
+    <footer>
+      <input id="q" placeholder="e.g. Why does pump P-101A keep tripping?" autocomplete="off" />
+      <button id="send">Ask</button>
+    </footer>
+  </div>
+
+  <div class="tabpanel" id="tab-explorer">
+    <div style="padding:16px; overflow-y:auto;">
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <input id="etag-input" placeholder="Enter an equipment tag, e.g. P-101A" autocomplete="off"
+          style="flex:1; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+                 border-radius:10px; padding:11px 14px; font-size:14px; outline:none;" />
+        <button id="etag-search" style="background:var(--accent); color:#0d1116; border:none;
+                 border-radius:10px; padding:0 18px; font-weight:700; cursor:pointer;">Explore</button>
+      </div>
+      <div id="etag-quickpicks" style="margin-bottom:16px;"></div>
+      <div id="etag-results"></div>
     </div>
   </div>
 
-  <footer>
-    <input id="q" placeholder="e.g. Why does pump P-101A keep tripping?" autocomplete="off" />
-    <button id="send">Ask</button>
-  </footer>
+  <div class="tabpanel" id="tab-documents">
+    <div style="padding:16px; overflow-y:auto;">
+      <div id="doc-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+  </div>
 
 <script>
 const api = (p, opts) => fetch(p, opts).then(r => r.json());
 let activeType = null;
+
+let tagsLoaded = false;
+
+async function loadExplorerTags() {
+  if (tagsLoaded) return;
+  const { tags } = await api('/api/equipment_tags');
+  const el = document.getElementById('etag-quickpicks');
+  el.innerHTML = `<div style="font-size:12px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Known equipment</div>`;
+  tags.forEach(t => {
+    const chip = document.createElement('span');
+    chip.className = 'etag'; chip.textContent = t;
+    chip.onclick = () => exploreTag(t);
+    el.appendChild(chip);
+  });
+  tagsLoaded = true;
+}
+
+let docsLoaded = false;
+
+async function loadDocuments() {
+  if (docsLoaded) return;
+  const { documents } = await api('/api/documents');
+  const el = document.getElementById('doc-list');
+  el.innerHTML = '';
+  documents.forEach(d => {
+    const row = document.createElement('div');
+    row.className = 'docrow';
+    row.style.flexWrap = 'wrap';
+    row.innerHTML = `
+      <div class="dtitle">${escapeHtml(d.title)}</div>
+      <div class="dbadge">${TYPE_LABELS[d.doc_type] || d.doc_type}</div>
+      <div class="dchunks">${d.chunks} chunks</div>
+      <div class="dpath">${escapeHtml(d.source_path)}</div>
+    `;
+    el.appendChild(row);
+  });
+  docsLoaded = true;
+}
+
+async function exploreTag(tag) {
+  document.getElementById('etag-input').value = tag;
+  const results = document.getElementById('etag-results');
+  results.innerHTML = `<div style="color:var(--muted);font-size:13px;">Loading ${escapeHtml(tag)}…</div>`;
+  try {
+    const info = await api(`/api/equipment/${encodeURIComponent(tag)}`);
+    renderExplorerResult(info);
+  } catch (e) {
+    results.innerHTML = `<div style="color:var(--muted);font-size:13px;">Couldn't find that tag.</div>`;
+  }
+}
+
+function renderExplorerResult(info) {
+  const results = document.getElementById('etag-results');
+  if (info.mention_count === 0) {
+    results.innerHTML = `<div style="color:var(--muted);font-size:13px;">No mentions of "${escapeHtml(info.tag)}" found.</div>`;
+    return;
+  }
+  let html = `<div class="esection">`;
+  html += `<div class="estat"><b style="color:var(--text);font-size:15px;">${escapeHtml(info.tag)}</b><br>
+    Mentioned ${info.mention_count} times across: ${info.doc_types.map(t => TYPE_LABELS[t]||t).join(', ')}</div>`;
+  html += `<div><span class="etag center">${escapeHtml(info.tag)}</span>`;
+  (info.related_tags || []).forEach(t => html += `<span class="etag" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`);
+  html += `</div></div>`;
+  if (info.answer) {
+    html += `<div class="esection" style="margin-top:12px;"><div class="answer">${linkifyCitations(escapeHtml(info.answer.answer))}</div></div>`;
+  }
+  results.innerHTML = html;
+  results.querySelectorAll('.etag[data-tag]').forEach(e => e.onclick = () => exploreTag(e.dataset.tag));
+}
+
+document.getElementById('etag-search').onclick = () => {
+  const v = document.getElementById('etag-input').value.trim();
+  if (v) exploreTag(v);
+};
+document.getElementById('etag-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('etag-search').click();
+});
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tabpanel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  if (name === 'explorer') loadExplorerTags();
+  if (name === 'documents') loadDocuments();
+}
+document.querySelectorAll('.tab').forEach(btn => btn.onclick = () => switchTab(btn.dataset.tab));
+
+
 
 const TYPE_LABELS = {
   engineering_drawing: "Drawings", maintenance_record: "Maintenance",
@@ -226,41 +369,13 @@ function render(ans) {
              t.style.outline = '2px solid var(--accent)';
              setTimeout(()=>t.style.outline='none', 1200); }
   });
-  m.querySelectorAll('.tag-link').forEach(el => el.onclick = () => lookupEquipment(el.dataset.tag));
+  m.querySelectorAll('.tag-link').forEach(el => el.onclick = () => {
+    switchTab('explorer'); loadExplorerTags(); exploreTag(el.dataset.tag);
+  });
   chat.appendChild(m); scroll();
 }
 
-function renderEquipmentCard(info) {
-  const m = document.createElement('div'); m.className = 'msg bot';
-  let html = `<div class="bubble">`;
-  html += `<div style="font-weight:700;font-size:15px;margin-bottom:6px;">🔗 ${escapeHtml(info.tag)}</div>`;
-  html += `<div style="font-size:12.5px;color:var(--muted);margin-bottom:8px;">
-             Mentioned ${info.mention_count} times across: ${info.doc_types.map(t => TYPE_LABELS[t]||t).join(', ')}
-           </div>`;
-  if (info.related_tags && info.related_tags.length) {
-    html += `<div style="font-size:12.5px;margin-bottom:10px;"><b>Related equipment:</b> ` +
-      info.related_tags.map(t => `<span class="tag-link" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`).join(', ') +
-      `</div>`;
-  }
-  html += `</div>`;
-  m.innerHTML = html;
-  m.querySelectorAll('.tag-link').forEach(el => el.onclick = () => lookupEquipment(el.dataset.tag));
-  chat.appendChild(m); scroll();
-  if (info.answer) render(info.answer);
-}
 
-async function lookupEquipment(tag) {
-  const e = document.getElementById('empty'); if (e) e.remove();
-  addUser(`🔗 ${tag}`);
-  const typing = addTyping();
-  try {
-    const info = await api(`/api/equipment/${encodeURIComponent(tag)}`);
-    typing.remove();
-    renderEquipmentCard(info);
-  } catch (e) {
-    typing.remove();
-  }
-}
 
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c =>
   ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }

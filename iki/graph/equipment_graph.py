@@ -36,3 +36,6 @@ class EquipmentGraph:
             "doc_types": sorted(self.tag_to_doc_types.get(tag, [])),
             "related_tags": sorted(self.related_tags(tag)),
         }
+    
+    def all_tags(self) -> List[str]:
+        return sorted(self.tag_to_chunks.keys())
