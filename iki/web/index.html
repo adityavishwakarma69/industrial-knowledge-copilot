@@ -226,6 +226,30 @@ async function exploreTag(tag) {
   }
 }
 
+function buildGraphSVG(tag, relatedTags) {
+  const w = 640, h = 300, cx = w / 2, cy = h / 2, r = 100;
+  const n = relatedTags.length;
+  const positions = relatedTags.map((t, i) => {
+    const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+    return { t, x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+  });
+
+  let svg = `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; max-height:300px;">`;
+  positions.forEach(p => {
+    svg += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" style="stroke:var(--line); stroke-width:1.5;" />`;
+  });
+  svg += `<circle cx="${cx}" cy="${cy}" r="32" style="fill:var(--accent);" />`;
+  svg += `<text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="12" font-weight="700" style="fill:#0d1116;">${escapeHtml(tag)}</text>`;
+  positions.forEach(p => {
+    svg += `<g class="gnode" data-tag="${escapeHtml(p.t)}">
+      <circle cx="${p.x}" cy="${p.y}" r="24" style="fill:var(--panel-2); stroke:var(--accent-2); stroke-width:1.5;" />
+      <text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-size="10.5" style="fill:var(--text);">${escapeHtml(p.t)}</text>
+    </g>`;
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
 function renderExplorerResult(info) {
   const results = document.getElementById('etag-results');
   if (info.mention_count === 0) {
@@ -235,6 +259,9 @@ function renderExplorerResult(info) {
   let html = `<div class="esection">`;
   html += `<div class="estat"><b style="color:var(--text);font-size:15px;">${escapeHtml(info.tag)}</b><br>
     Mentioned ${info.mention_count} times across: ${info.doc_types.map(t => TYPE_LABELS[t]||t).join(', ')}</div>`;
+  if (info.related_tags && info.related_tags.length) {
+    html += `<div style="margin:10px 0;">${buildGraphSVG(info.tag, info.related_tags)}</div>`;
+  }  
   html += `<div><span class="etag center">${escapeHtml(info.tag)}</span>`;
   (info.related_tags || []).forEach(t => html += `<span class="etag" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`);
   html += `</div></div>`;
@@ -243,6 +270,10 @@ function renderExplorerResult(info) {
   }
   results.innerHTML = html;
   results.querySelectorAll('.etag[data-tag]').forEach(e => e.onclick = () => exploreTag(e.dataset.tag));
+  results.querySelectorAll('.gnode').forEach(g => {
+    g.style.cursor = 'pointer';
+    g.onclick = () => exploreTag(g.dataset.tag);
+  });
 }
 
 document.getElementById('etag-search').onclick = () => {
