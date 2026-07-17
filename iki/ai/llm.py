@@ -23,7 +23,8 @@ _BOILERPLATE = {"summary", "purpose and scope", "method", "findings", "conclusio
 def _clean_sentence(sent: str) -> str:
     """Strip markdown markers and collapse whitespace from a candidate sentence."""
     sent = sent.strip()
-    lines = [_MD_HEADER.sub("", ln).lstrip("-*> ").strip() for ln in sent.splitlines()]
+    lines = [_MD_HEADER.sub("", ln).lstrip("-*> ").strip()
+             for ln in sent.splitlines()]
     sent = " ".join(ln for ln in lines if ln)
     return re.sub(r"\s+", " ", sent).strip()
 
@@ -131,7 +132,8 @@ class OpenAIGenerator(Generator):
             temperature=0.1,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": _build_user_prompt(query, contexts)},
+                {"role": "user", "content": _build_user_prompt(
+                    query, contexts)},
             ],
         )
         return resp.choices[0].message.content.strip()
@@ -152,9 +154,39 @@ class AnthropicGenerator(Generator):
             max_tokens=700,
             temperature=0.1,
             system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": _build_user_prompt(query, contexts)}],
+            messages=[
+                {"role": "user", "content": _build_user_prompt(query, contexts)}],
         )
         return "".join(b.text for b in msg.content if b.type == "text").strip()
+
+
+class OllamaGenerator(Generator):
+    name = "ollama"
+
+    def __init__(self, model="qwen2.5:3b-instruct"):
+        self.model = model
+
+    def generate(self, query, contexts):
+
+        import ollama
+        response = ollama.chat(
+            model=self.model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": SYSTEM_PROMPT,
+                },
+                {
+                    "role": "user",
+                    "content": _build_user_prompt(query, contexts),
+                },
+            ],
+            options={
+                "temperature": 0.1,
+            },
+        )
+
+        return response["message"]["content"].strip()
 
 
 def get_generator() -> Generator:
@@ -164,10 +196,19 @@ def get_generator() -> Generator:
         try:
             return OpenAIGenerator()
         except Exception as exc:
-            print(f"[iki] OpenAI generator unavailable ({exc}); using offline generator.")
+            print(f"[iki] OpenAI generator unavailable ({
+                  exc}); using offline generator.")
     elif provider == "anthropic":
         try:
             return AnthropicGenerator()
         except Exception as exc:
-            print(f"[iki] Anthropic generator unavailable ({exc}); using offline generator.")
+            print(f"[iki] Anthropic generator unavailable ({
+                  exc}); using offline generator.")
+    elif provider == "ollama":
+        try:
+            return OllamaGenerator(model=settings.generation_model)
+        except Exception as exc:
+            print(f"[iki] Ollama generator unavailable ({
+                  exc}); using offline generator.")
+
     return ExtractiveGenerator()

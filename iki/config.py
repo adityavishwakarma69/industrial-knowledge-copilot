@@ -29,21 +29,29 @@ class Settings:
     """Runtime settings for the IKI platform."""
 
     # --- Storage -------------------------------------------------------------
-    data_dir: Path = field(default_factory=lambda: Path(_env("IKI_DATA_DIR", "iki_store")))
+    data_dir: Path = field(default_factory=lambda: Path(
+        _env("IKI_DATA_DIR", "iki_store")))
     index_filename: str = "knowledge_index.json"
 
     # --- AI backend ----------------------------------------------------------
-    # "offline" (default, no API key), "openai", or "anthropic".
-    ai_provider: str = field(default_factory=lambda: _env("IKI_AI_PROVIDER", "offline"))
-    embedding_model: str = field(default_factory=lambda: _env("IKI_EMBEDDING_MODEL", "text-embedding-3-small"))
-    generation_model: str = field(default_factory=lambda: _env("IKI_GENERATION_MODEL", "gpt-4o-mini"))
-    embedding_dim: int = field(default_factory=lambda: _env_int("IKI_EMBEDDING_DIM", 512))
+    # "offline" (default, no API key), "openai", or "anthropic" or "ollama".
+    ai_provider: str = field(
+        default_factory=lambda: _env("IKI_AI_PROVIDER", "ollama"))
+    embedding_model: str = field(default_factory=lambda: _env(
+        "IKI_EMBEDDING_MODEL", "text-embedding-3-small"))
+    generation_model: str = field(default_factory=lambda: _env(
+        "IKI_GENERATION_MODEL", "qwen2.5:3b-instruct"))
+    embedding_dim: int = field(
+        default_factory=lambda: _env_int("IKI_EMBEDDING_DIM", 512))
 
     # --- Retrieval / chunking ------------------------------------------------
-    chunk_size: int = field(default_factory=lambda: _env_int("IKI_CHUNK_SIZE", 900))
-    chunk_overlap: int = field(default_factory=lambda: _env_int("IKI_CHUNK_OVERLAP", 150))
+    chunk_size: int = field(
+        default_factory=lambda: _env_int("IKI_CHUNK_SIZE", 900))
+    chunk_overlap: int = field(
+        default_factory=lambda: _env_int("IKI_CHUNK_OVERLAP", 150))
     top_k: int = field(default_factory=lambda: _env_int("IKI_TOP_K", 6))
-    min_score: float = field(default_factory=lambda: _env_float("IKI_MIN_SCORE", 0.04))
+    min_score: float = field(
+        default_factory=lambda: _env_float("IKI_MIN_SCORE", 0.04))
 
     @property
     def index_path(self) -> Path:
