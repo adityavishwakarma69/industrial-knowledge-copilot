@@ -40,7 +40,7 @@ class Settings:
     embedding_model: str = field(default_factory=lambda: _env(
         "IKI_EMBEDDING_MODEL", "text-embedding-3-small"))
     generation_model: str = field(default_factory=lambda: _env(
-        "IKI_GENERATION_MODEL", "qwen2.5:3b-instruct"))
+        "IKI_GENERATION_MODEL", "gemma4:e4b"))
     embedding_dim: int = field(
         default_factory=lambda: _env_int("IKI_EMBEDDING_DIM", 512))
 

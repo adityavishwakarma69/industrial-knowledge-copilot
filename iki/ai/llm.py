@@ -163,29 +163,37 @@ class AnthropicGenerator(Generator):
 class OllamaGenerator(Generator):
     name = "ollama"
 
-    def __init__(self, model="qwen2.5:3b-instruct"):
-        self.model = model
+    def __init__(self, model: str = None):
+        import ollama  # raises ImportError if the package isn't installed
 
-    def generate(self, query, contexts):
+        self.model = model or settings.generation_model
+        self._client = ollama.Client()
 
-        import ollama
-        response = ollama.chat(
+        try:
+            resp = self._client.list()
+        except Exception as exc:
+            raise RuntimeError(
+                "Ollama daemon not reachable (is `ollama serve` running?): "
+                f"{exc}"
+            ) from exc
+
+        models = resp.get("models", []) if isinstance(resp, dict) else getattr(resp, "models", [])
+        available = {(m.get("model") if isinstance(m, dict) else getattr(m, "model", None)) for m in models}
+
+        if self.model not in available:
+            raise RuntimeError(
+                f"Model '{self.model}' is not pulled locally. Run: ollama pull {self.model}"
+            )
+
+    def generate(self, query: str, contexts: Sequence[Tuple[int, str]]) -> str:
+        response = self._client.chat(
             model=self.model,
             messages=[
-                {
-                    "role": "system",
-                    "content": SYSTEM_PROMPT,
-                },
-                {
-                    "role": "user",
-                    "content": _build_user_prompt(query, contexts),
-                },
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": _build_user_prompt(query, contexts)},
             ],
-            options={
-                "temperature": 0.1,
-            },
+            options={"temperature": 0.1},
         )
-
         return response["message"]["content"].strip()
 
 
