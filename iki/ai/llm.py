@@ -167,7 +167,9 @@ class OllamaGenerator(Generator):
         import ollama  # raises ImportError if the package isn't installed
 
         self.model = model or settings.generation_model
-        self._client = ollama.Client()
+        self._client = ollama.Client(
+                host=settings.ollama_host
+        )
 
         try:
             resp = self._client.list()
@@ -177,12 +179,15 @@ class OllamaGenerator(Generator):
                 f"{exc}"
             ) from exc
 
-        models = resp.get("models", []) if isinstance(resp, dict) else getattr(resp, "models", [])
-        available = {(m.get("model") if isinstance(m, dict) else getattr(m, "model", None)) for m in models}
+        models = resp.get("models", []) if isinstance(
+            resp, dict) else getattr(resp, "models", [])
+        available = {(m.get("model") if isinstance(m, dict)
+                      else getattr(m, "model", None)) for m in models}
 
         if self.model not in available:
             raise RuntimeError(
-                f"Model '{self.model}' is not pulled locally. Run: ollama pull {self.model}"
+                f"Model '{self.model}' is not pulled locally. Run: ollama pull {
+                    self.model}"
             )
 
     def generate(self, query: str, contexts: Sequence[Tuple[int, str]]) -> str:
@@ -190,7 +195,8 @@ class OllamaGenerator(Generator):
             model=self.model,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": _build_user_prompt(query, contexts)},
+                {"role": "user", "content": _build_user_prompt(
+                    query, contexts)},
             ],
             options={"temperature": 0.1},
         )

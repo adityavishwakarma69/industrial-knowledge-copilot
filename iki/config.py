@@ -37,10 +37,12 @@ class Settings:
     # "offline" (default, no API key), "openai", or "anthropic" or "ollama".
     ai_provider: str = field(
         default_factory=lambda: _env("IKI_AI_PROVIDER", "ollama"))
+    ollama_host: str = field(
+        default_factory=lambda: _env("OLLAMA_HOST", "localhost"))
     embedding_model: str = field(default_factory=lambda: _env(
         "IKI_EMBEDDING_MODEL", "text-embedding-3-small"))
     generation_model: str = field(default_factory=lambda: _env(
-        "IKI_GENERATION_MODEL", "gemma4:e4b"))
+        "IKI_GENERATION_MODEL", "qwen2.5:3b-instruct"))
     embedding_dim: int = field(
         default_factory=lambda: _env_int("IKI_EMBEDDING_DIM", 512))
 
