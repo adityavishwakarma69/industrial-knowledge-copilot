@@ -66,7 +66,7 @@ python run.py
 
 # Option B — CLI
 python scripts/seed.py                    # ingest sample_data/
-python -m iki.cli ask "Why does pump P-101A keep tripping?"
+python -m iki.cli ask "what should I check first when P-101A trips"
 python -m iki.cli diagnose P-101A         # maintenance briefing (agent)
 python -m iki.cli compliance "cooling water system"
 python -m iki.cli stats
